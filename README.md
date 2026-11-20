@@ -2,6 +2,22 @@
 
 A bright 3-tier task manager (kanban board) used to practise Kubernetes Modules 1-13 end to end.
 
+![TaskBoard UI](screenshot.png)
+
+## 📘 Step-by-step guide
+
+**Full guided steps (build, deploy, harden, Helm, AWS): [GUIDE.md](GUIDE.md)**
+
+| Phase | What you do | Guide section |
+| --- | --- | --- |
+| 1 | Build and push Docker images, test with Docker Compose | [Phase 1](GUIDE.md#3-phase-1-build-and-push-the-docker-images) |
+| 2 | Deploy on Kind with plain YAML | [Phase 2](GUIDE.md#4-phase-2-deploy-on-kind-with-plain-yaml) |
+| 3 | Probes, scheduling, DaemonSet, HPA, VPA, PDB | [Phase 3](GUIDE.md#5-phase-3-production-hardening) |
+| 4 | Rolling update to v2 and rollback | [Phase 4](GUIDE.md#6-phase-4-rolling-update-to-v2-and-rollback) |
+| 5 | Package as a Helm chart | [Phase 5](GUIDE.md#7-phase-5-package-everything-as-a-helm-chart) |
+| 6 | Production deploy on kubeadm (AWS) | [Phase 6](GUIDE.md#8-phase-6-production-deploy-on-the-kubeadm-aws-cluster) |
+| - | Troubleshooting, cleanup, assignments | [Section 9](GUIDE.md#9-troubleshooting-cleanup-and-assignments) |
+
 ```
 Browser ──> Frontend (nginx, :8080) ──/api──> Backend (Flask, :5000) ──> MySQL (StatefulSet, :3306)
 ```
@@ -35,6 +51,9 @@ taskboard/
 ## Quick start
 
 ```bash
+# 0. Get the code
+git clone https://github.com/Satyams-git/TaskBoard-Kanban-K8s.git taskboard && cd taskboard
+
 # 1. Build and push images (replace with your Docker Hub user)
 export DOCKER_USER=yourname
 docker build -t $DOCKER_USER/taskboard-backend:v1 app/backend
@@ -51,7 +70,7 @@ kubectl apply -f k8s/00-namespace.yaml
 kubectl apply -f k8s/01-configmap.yaml -f k8s/02-secret.yaml -f k8s/03-mysql.yaml -f k8s/04-backend.yaml -f k8s/05-frontend.yaml
 ```
 
-Full guided steps are in the course guide document.
+For the complete walkthrough with expected outputs, see [GUIDE.md](GUIDE.md).
 
 ## API
 
