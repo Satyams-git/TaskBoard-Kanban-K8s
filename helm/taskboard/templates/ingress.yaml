@@ -1,0 +1,31 @@
+{{- if .Values.ingress.enabled -}}
+{{- $name := include "taskboard.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+  - {{- if .Values.ingress.host }}
+    host: {{ .Values.ingress.host | quote }}
+    {{- end }}
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $name }}-backend
+            port:
+              number: 5000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $name }}-frontend
+            port:
+              number: 80
+{{- end }}

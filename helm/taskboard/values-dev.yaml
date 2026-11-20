@@ -1,0 +1,15 @@
+# Dev environment: local Kind cluster, small and cheap
+config:
+  appEnv: kind-dev
+
+backend:
+  replicas: 1
+
+frontend:
+  replicas: 1
+
+hpa:
+  enabled: false
+
+pdb:
+  enabled: false

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "taskboard.fullname" . }}-test
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+  - name: test
+    image: busybox:1.37
+    command:
+    - sh
+    - -c
+    - |
+      wget -qO- http://{{ include "taskboard.fullname" . }}-frontend/healthz &&
+      wget -qO- http://{{ include "taskboard.fullname" . }}-backend:5000/api/ready

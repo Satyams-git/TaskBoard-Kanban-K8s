@@ -1,0 +1,10 @@
+# Local secrets (never commit)
+my-secrets.yaml
+*.env
+# Python
+__pycache__/
+*.pyc
+.venv/
+# OS / editor
+.DS_Store
+*.swp

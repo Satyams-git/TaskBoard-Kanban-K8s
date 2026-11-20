@@ -1,0 +1,61 @@
+{{- $name := include "taskboard.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}-frontend
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "taskboard.labels" . | nindent 8 }}
+        {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 8 }}
+    spec:
+      containers:
+      - name: frontend
+        image: {{ include "taskboard.image" (dict "ctx" . "image" .Values.frontend.image) }}
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: BACKEND_URL
+          value: "http://{{ $name }}-backend.{{ .Release.Namespace }}.svc.cluster.local:5000"
+        resources:
+          {{- toYaml .Values.frontend.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-frontend
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 4 }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector:
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 4 }}
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    {{- if and (eq .Values.frontend.service.type "NodePort") .Values.frontend.service.nodePort }}
+    nodePort: {{ .Values.frontend.service.nodePort }}
+    {{- end }}

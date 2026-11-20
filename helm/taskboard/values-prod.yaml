@@ -1,0 +1,27 @@
+# Prod environment: kubeadm cluster on AWS (Module 13)
+config:
+  appEnv: aws-prod
+
+backend:
+  replicas: 2
+
+frontend:
+  replicas: 2
+  service:
+    type: NodePort
+    nodePort: 30080
+
+mysql:
+  storage: 5Gi
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  cpuUtilization: 50
+
+pdb:
+  enabled: true
+
+logAgent:
+  enabled: true

@@ -1,0 +1,47 @@
+# Run the whole TaskBoard stack locally with Docker (before Kubernetes).
+#   cd app && docker compose up -d --build
+#   open http://localhost:8080
+#   docker compose down -v     (stop and delete the database volume)
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: taskboard
+      MYSQL_USER: taskboard
+      MYSQL_PASSWORD: taskboard-pass
+      MYSQL_ROOT_PASSWORD: root-pass
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot-pass"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  backend:
+    build: ./backend
+    image: taskboard-backend:local
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: taskboard
+      DB_USER: taskboard
+      DB_PASSWORD: taskboard-pass
+      APP_ENV: docker-compose
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    image: taskboard-frontend:local
+    environment:
+      BACKEND_URL: http://backend:5000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

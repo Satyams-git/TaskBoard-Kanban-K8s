@@ -1,0 +1,104 @@
+{{- $name := include "taskboard.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-mysql
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "mysql") | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "mysql") | nindent 4 }}
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}-mysql
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "mysql") | nindent 4 }}
+spec:
+  serviceName: {{ $name }}-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "mysql") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "taskboard.labels" . | nindent 8 }}
+        {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "mysql") | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.mysql.nodeAffinity.enabled }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.mysql.nodeAffinity.key }}
+                operator: In
+                values:
+                - {{ .Values.mysql.nodeAffinity.value | quote }}
+      {{- end }}
+      containers:
+      - name: mysql
+        image: {{ .Values.mysql.image }}
+        ports:
+        - name: mysql
+          containerPort: 3306
+        env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $name }}-config
+              key: MYSQL_DATABASE
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $name }}-config
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $name }}-db-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $name }}-db-secret
+              key: MYSQL_ROOT_PASSWORD
+        resources:
+          {{- toYaml .Values.mysql.resources | nindent 10 }}
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\""]
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\""]
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      {{- if .Values.mysql.storageClassName }}
+      storageClassName: {{ .Values.mysql.storageClassName }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.mysql.storage }}

@@ -1,0 +1,15 @@
+{{- if .Values.vpa.enabled -}}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "taskboard.fullname" . }}-mysql
+  labels:
+    {{- include "taskboard.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ include "taskboard.fullname" . }}-mysql
+  updatePolicy:
+    updateMode: "Off"
+{{- end }}

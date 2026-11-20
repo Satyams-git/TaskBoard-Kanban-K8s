@@ -1,0 +1,36 @@
+# Nginx config for the TaskBoard frontend.
+# The official image runs envsubst on this file at start-up, so ${BACKEND_URL}
+# and ${NGINX_LOCAL_RESOLVERS} are filled in from environment variables.
+
+server {
+    listen 8080;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Use the container's own DNS server (Docker DNS or CoreDNS) and re-resolve
+    # the backend name every 10 seconds, so a new backend Service IP is picked up.
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+    # Static files (HTML, CSS, JS)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Forward every /api/... call to the backend Service.
+    location /api/ {
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 60s;
+    }
+
+    # Small health endpoint for the frontend probes
+    location = /healthz {
+        access_log off;
+        return 200 "ok\n";
+    }
+}

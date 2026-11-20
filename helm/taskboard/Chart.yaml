@@ -1,0 +1,11 @@
+apiVersion: v2
+name: taskboard
+description: TaskBoard 3-tier app (nginx frontend, Flask API, MySQL) for the Kubernetes capstone
+type: application
+version: 1.0.0
+appVersion: "v1"
+keywords:
+  - taskboard
+  - capstone
+maintainers:
+  - name: DevOps Training

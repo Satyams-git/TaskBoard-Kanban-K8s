@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskBoard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">✓</span>
+      <div>
+        <h1>TaskBoard</h1>
+        <p class="tagline">Plan it. Move it. Ship it.</p>
+      </div>
+    </div>
+    <div class="stats" id="stats">
+      <div class="stat"><span id="stat-total">0</span><small>Total</small></div>
+      <div class="stat"><span id="stat-progress">0</span><small>In progress</small></div>
+      <div class="stat"><span id="stat-done">0</span><small>Done</small></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="composer">
+      <form id="task-form" autocomplete="off">
+        <input id="title" type="text" maxlength="200" placeholder="What needs to be done?" required>
+        <input id="description" type="text" maxlength="1000" placeholder="Details (optional)">
+        <select id="priority" aria-label="Priority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button type="submit" class="btn-primary">+ Add task</button>
+      </form>
+      <p class="error" id="error" hidden></p>
+    </section>
+
+    <section class="board">
+      <div class="column" data-status="todo">
+        <div class="column-head todo"><h2>To Do</h2><span class="count" id="count-todo">0</span></div>
+        <div class="cards" id="col-todo"></div>
+      </div>
+      <div class="column" data-status="in_progress">
+        <div class="column-head progress"><h2>In Progress</h2><span class="count" id="count-in_progress">0</span></div>
+        <div class="cards" id="col-in_progress"></div>
+      </div>
+      <div class="column" data-status="done">
+        <div class="column-head done"><h2>Done</h2><span class="count" id="count-done">0</span></div>
+        <div class="cards" id="col-done"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="dot" id="health-dot"></span>
+    <span id="server-info">Connecting to API...</span>
+    <button class="btn-ghost" id="refresh-info" title="Ask the API again">Who served me?</button>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

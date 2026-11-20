@@ -1,0 +1,85 @@
+# Default values for the TaskBoard chart.
+# Override per environment with -f values-dev.yaml or -f values-prod.yaml.
+
+# Change this to your Docker Hub username (or pass --set imageUser=...)
+imageUser: YOUR_DOCKERHUB_USER
+
+config:
+  appEnv: default
+  dbName: taskboard
+  dbUser: taskboard
+
+# Passwords. Pass real values at install time: --set secrets.mysqlPassword=...
+secrets:
+  mysqlRootPassword: ""
+  mysqlPassword: ""
+
+backend:
+  image:
+    name: taskboard-backend
+    tag: v1
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+frontend:
+  image:
+    name: taskboard-frontend
+    tag: v1
+    pullPolicy: IfNotPresent
+  replicas: 2
+  service:
+    type: NodePort
+    nodePort: 30080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+mysql:
+  image: mysql:8.4
+  storage: 2Gi
+  # Empty = use the cluster's default StorageClass
+  storageClassName: ""
+  # Pin MySQL to the node labelled <key>=<value> (Module 10)
+  nodeAffinity:
+    enabled: true
+    key: role
+    value: db
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+ingress:
+  enabled: false
+  className: traefik
+  host: ""
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  cpuUtilization: 50
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+vpa:
+  enabled: false
+
+logAgent:
+  enabled: true
